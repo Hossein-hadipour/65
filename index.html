@@ -1,0 +1,858 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمونه برگ بازدید از کانون یاریگران قرآن</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Tahoma', sans-serif; 
+            font-size: 12px; 
+            background: linear-gradient(135deg, #e9f7ff 0%, #d1eaff 100%); 
+            color: #333; 
+        }
+        .container { max-width: 1200px; }
+        h1 { 
+            font-size: 20px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            color: #0056b3; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .form-section { 
+            background: linear-gradient(to bottom, #ffffff 0%, #f8fbff 100%); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,123,255,0.15); 
+            margin-bottom: 20px; 
+            border: 1px solid #cfe2ff;
+        }
+        .table th { 
+            background: linear-gradient(to right, #cfe2ff 0%, #a8d1ff 100%); 
+            color: #0c63e4; 
+            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+        }
+        .table td { 
+            font-size: 12px; 
+            padding: 8px; 
+            background-color: #f8fbff; 
+            border-bottom: 1px solid #e3f2fd;
+        }
+        .radar-chart { height: 300px; margin: 20px 0; }
+        .signature-box { 
+            border: 1px solid #ced4da; 
+            width: 300px; 
+            height: 150px; 
+            margin: 10px 0; 
+            background: #fff; 
+            border-radius: 5px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .avg-score { 
+            font-weight: bold; 
+            color: #28a745; 
+            font-size: 14px; 
+            background: #e6ffe6; 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            display: inline-block;
+        }
+        .footer { 
+            text-align: center; 
+            font-size: 10px; 
+            margin-top: 20px; 
+            color: #6c757d; 
+            background: rgba(255,255,255,0.8); 
+            padding: 10px; 
+            border-radius: 8px;
+        }
+        #map { height: 200px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .photo-preview { max-width: 200px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .audio-recorder { margin: 10px 0; }
+        @media print {
+            body { font-size: 10px; margin: 5mm; }
+            .no-print { display: none; }
+            .table th, .table td { padding: 4px; }
+            .signature-box { page-break-inside: avoid; }
+        }
+        .btn { 
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .btn-primary { background: linear-gradient(to right, #0d6efd 0%, #0a58ca 100%); border: none; }
+        .btn-secondary { background: linear-gradient(to right, #6c757d 0%, #5a6268 100%); border: none; }
+        .btn-info { background: linear-gradient(to right, #17a2b8 0%, #138496 100%); border: none; }
+        .btn-warning { background: linear-gradient(to right, #ffc107 0%, #e0a800 100%); border: none; }
+        .btn-success { background: linear-gradient(to right, #28a745 0%, #218838 100%); border: none; }
+        .btn-danger { background: linear-gradient(to right, #dc3545 0%, #c82333 100%); border: none; }
+        .form-control { 
+            font-size: 12px; 
+            background-color: #f0f8ff; 
+            border-color: #b3d7ff; 
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .form-control:focus { 
+            border-color: #0d6efd; 
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+        }
+        .card { 
+            border: none; 
+            box-shadow: 0 4px 12px rgba(0,123,255,0.15); 
+            background: linear-gradient(to bottom, #fff 0%, #f8fbff 100%);
+            border-radius: 12px;
+        }
+        .card-header { 
+            background: linear-gradient(to right, #e3f2fd 0%, #d1eaff 100%); 
+            font-weight: bold; 
+            color: #0056b3;
+            border-bottom: 1px solid #cfe2ff;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        @media (max-width: 768px) {
+            .radar-chart { height: 200px; }
+            .signature-box { width: 100%; height: 200px; }
+            #map { height: 150px; }
+        }
+        .chart-container { display: flex; flex-direction: row-reverse; align-items: flex-start; }
+        .chart-select { width: 200px; margin-left: 20px; }
+        .chart-canvas { flex-grow: 1; height: 600px; width: 100%; } /* Increased height for more space */
+        .school-info { 
+            background: linear-gradient(to bottom, #e3f2fd 0%, #d1eaff 100%); 
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        }
+        .icon-label { position: relative; }
+        .icon-label i { position: absolute; right: 10px; top: 35px; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>نمونه برگ بازدید از کانون یاریگران قرآن</h1>
+        
+        <!-- اطلاعات مدرسه -->
+        <div class="school-info card">
+            <div class="row">
+                <div class="col-md-4 mb-3 icon-label">
+                    <label class="form-label"><i class="fas fa-school"></i> نام مدرسه:</label>
+                    <input type="text" class="form-control" id="schoolName">
+                </div>
+                <div class="col-md-3 mb-3 icon-label">
+                    <label class="form-label"><i class="fas fa-barcode"></i> کد مدرسه:</label>
+                    <input type="text" class="form-control" id="schoolCode">
+                </div>
+                <div class="col-md-5 mb-3 icon-label">
+                    <label class="form-label"><i class="fas fa-map-marker-alt"></i> ناحیه/شهر/منطقه:</label>
+                    <input type="text" class="form-control" id="schoolRegion">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3 icon-label">
+                    <label class="form-label"><i class="fas fa-user-tie"></i> نام مدیر:</label>
+                    <input type="text" class="form-control" id="managerName">
+                </div>
+                <div class="col-md-6 mb-3 icon-label">
+                    <label class="form-label"><i class="fas fa-phone"></i> شماره تماس مدیر:</label>
+                    <input type="text" class="form-control" id="managerPhone">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section card">
+            <form id="evaluationForm">
+                <!-- اطلاعات بازدیدکننده -->
+                <div class="row">
+                    <div class="col-md-4 mb-3 icon-label">
+                        <label for="visitorName" class="form-label"><i class="fas fa-user"></i> نام بازدیدکننده:</label>
+                        <input type="text" class="form-control" id="visitorName" required>
+                    </div>
+                    <div class="col-md-3 mb-3 icon-label">
+                        <label for="personnelCode" class="form-label"><i class="fas fa-id-card"></i> کد پرسنلی:</label>
+                        <input type="text" class="form-control" id="personnelCode" required>
+                    </div>
+                    <div class="col-md-3 mb-3 icon-label">
+                        <label for="visitorPhone" class="form-label"><i class="fas fa-phone"></i> شماره تماس:</label>
+                        <input type="text" class="form-control" id="visitorPhone">
+                    </div>
+                    <div class="col-md-2 mb-3 icon-label">
+                        <label for="base" class="form-label"><i class="fas fa-briefcase"></i> سمت:</label>
+                        <input type="text" class="form-control" id="base" required>
+                    </div>
+                </div>
+                
+                <h5 class="card-header"><i class="fas fa-chart-bar me-2"></i>شاخص‌ها</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>شاخص</th>
+                            <th>امتیاز (0-5)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>مناسب بودن تابلو و نمای سر درب مدرسه</td><td><select class="form-select score" data-index="0"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>2</td><td>نصب پرچم جمهوری اسلامی</td><td><select class="form-select score" data-index="1"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>3</td><td>ایمن سازی مدرسه</td><td><select class="form-select score" data-index="2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>4</td><td>نظافت (سرویس بهداشتی،حیاط،نمازخانه،آب خوری)</td><td><select class="form-select score" data-index="3"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>5</td><td>تدوین برنامه سالانه پرورشی</td><td><select class="form-select score" data-index="4"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>6</td><td>آشنا بودن مدیر با شرح وظایف خود</td><td><select class="form-select score" data-index="5"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>7</td><td>به روز بودن دفتر مکاتبات اداری</td><td><select class="form-select score" data-index="6"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>8</td><td>بسته نمودن دفتر حضور و غیاب در پایان هر هفته</td><td><select class="form-select score" data-index="7"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>9</td><td>ساعت ورود و خروج تمامی همکاران</td><td><select class="form-select score" data-index="8"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>10</td><td>رعایت زمان بندی و تقویم اجرایی مدیریت</td><td><select class="form-select score" data-index="9"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>11</td><td>توجه به تابلوها و مشخصات همکاران در دفاتر مدرسه</td><td><select class="form-select score" data-index="10"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>12</td><td>نحوه اطلاع رسانی به اولیا در زمینه های مختلف</td><td><select class="form-select score" data-index="11"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>13</td><td>تشکیل شورای برنامه ریزی</td><td><select class="form-select score" data-index="12"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>14</td><td>به روز رسانی اموال مدرسه</td><td><select class="form-select score" data-index="13"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>15</td><td>مناسب بودن سیستم سرمایشی ،گرمایشی و شارژ کپسول آتشنشانی</td><td><select class="form-select score" data-index="14"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>16</td><td>بستن حساب مالی و افتتاح سال مالی جدید</td><td><select class="form-select score" data-index="15"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>17</td><td>صورت جلسه مالی ماهانه</td><td><select class="form-select score" data-index="16"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>18</td><td>تکریم ارباب رجوع توسط ارکان کانون و دار القران</td><td><select class="form-select score" data-index="17"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>19</td><td>میزان رضایت مدیر از مربیان</td><td><select class="form-select score" data-index="18"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>20</td><td>میزان رضایت مندی مدیر از نیروی خدماتی</td><td><select class="form-select score" data-index="19"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>21</td><td>میزان حضور نیروی خدماتی در مدرسه (ساعت ذکر شود)</td><td><select class="form-select score" data-index="20"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>22</td><td>ساعات حضور مربیان در مراکز</td><td><select class="form-select score" data-index="21"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                        <tr><td>23</td><td>کلاس ها و انجمن های فعال در مراکز</td><td><select class="form-select score" data-index="22"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                    </tbody>
+                </table>
+                
+                <!-- گزارش‌های متنی -->
+                <div class="row">
+                    <div class="col-md-6 mb-3 icon-label">
+                        <label for="generalReport" class="form-label"><i class="fas fa-file-alt"></i> 1. گزارش کلی</label>
+                        <textarea class="form-control" id="generalReport" rows="5"></textarea>
+                    </div>
+                    <div class="col-md-6 mb-3 icon-label">
+                        <label for="strengths" class="form-label"><i class="fas fa-thumbs-up"></i> 2. نقاط قوت</label>
+                        <textarea class="form-control" id="strengths" rows="5"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3 icon-label">
+                        <label for="weaknesses" class="form-label"><i class="fas fa-thumbs-down"></i> 3. نقاط ضعف</label>
+                        <textarea class="form-control" id="weaknesses" rows="5"></textarea>
+                    </div>
+                    <div class="col-md-6 mb-3 icon-label">
+                        <label for="followUps" class="form-label"><i class="fas fa-tasks"></i> 4. موارد قابل پیگیری</label>
+                        <textarea class="form-control" id="followUps" rows="5"></textarea>
+                    </div>
+                </div>
+                
+                <h5 class="card-header"><i class="fas fa-users me-2"></i>بازدید کنندگان (تا ۷ نفر)</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>نام</th>
+                            <th>سمت</th>
+                            <th>امضا</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig1"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="1">پاک کردن</button></td></tr>
+                        <tr><td>2</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig2"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="2">پاک کردن</button></td></tr>
+                        <tr><td>3</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig3"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="3">پاک کردن</button></td></tr>
+                        <tr><td>4</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig4"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="4">پاک کردن</button></td></tr>
+                        <tr><td>5</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig5"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="5">پاک کردن</button></td></tr>
+                        <tr><td>6</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig6"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="6">پاک کردن</button></td></tr>
+                        <tr><td>7</td><td><input type="text" class="form-control visitor-name"></td><td><input type="text" class="form-control visitor-position"></td><td><canvas class="signature-box" id="sig7"></canvas><button class="btn btn-sm btn-secondary clear-sig" data-sig="7">پاک کردن</button></td></tr>
+                    </tbody>
+                </table>
+                
+                <div class="mb-3 icon-label">
+                    <label><i class="fas fa-calendar-alt"></i> تاریخ میلادی: <span id="gregDate"></span></label><br>
+                    <label>تاریخ شمسی: <span id="jalaliDate"></span></label>
+                </div>
+                
+                <div class="mb-3">
+                    <span class="avg-score"><i class="fas fa-star me-1"></i>معدل: <span id="averageScore">0</span>%</span>
+                </div>
+                
+                <!-- ویژگی‌های اضافی -->
+                <div class="mb-3 icon-label">
+                    <label for="photo" class="form-label"><i class="fas fa-camera"></i> بارگذاری عکس بازدید:</label>
+                    <input type="file" class="form-control" id="photo" accept="image/*">
+                    <img id="photoPreview" class="photo-preview" src="" alt="پیش‌نمایش عکس" style="display:none;">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-map-marked-alt"></i> مکان بازدید:</label>
+                    <button type="button" class="btn btn-info" id="getLocation">ثبت مکان فعلی</button>
+                    <div id="map"></div>
+                    <input type="hidden" id="locationLat">
+                    <input type="hidden" id="locationLng">
+                </div>
+                
+                <div class="mb-3 audio-recorder">
+                    <label class="form-label"><i class="fas fa-microphone"></i> ضبط صوت رضایت (حداکثر ۳ دقیقه):</label>
+                    <button type="button" class="btn btn-primary" id="startRecord">شروع ضبط</button>
+                    <button type="button" class="btn btn-danger" id="stopRecord" disabled>توقف ضبط</button>
+                    <audio id="audioPlayback" controls style="display:none;"></audio>
+                </div>
+                
+                <button type="button" class="btn btn-primary no-print" id="saveBtn"><i class="fas fa-save me-2"></i>ذخیره</button>
+                <button type="button" class="btn btn-secondary no-print" id="editBtn"><i class="fas fa-edit me-2"></i>ویرایش</button>
+                <button type="button" class="btn btn-info no-print" id="printBtn"><i class="fas fa-print me-2"></i>چاپ PDF</button>
+                <button type="button" class="btn btn-warning no-print" id="exportJson"><i class="fas fa-file-export me-2"></i>خروجی JSON</button>
+                <button type="button" class="btn btn-success no-print" id="importJson"><i class="fas fa-file-import me-2"></i>ورود JSON</button>
+                <button type="button" class="btn btn-danger no-print" id="exportExcel"><i class="fas fa-file-excel me-2"></i>خروجی اکسل</button>
+                
+                <button type="button" class="btn btn-outline-primary no-print quick-fill" data-score="5"><i class="fas fa-bolt me-2"></i>پر کردن سریع: همه 5</button>
+                <button type="button" class="btn btn-outline-secondary no-print quick-fill" data-score="3"><i class="fas fa-bolt me-2"></i>پر کردن سریع: همه 3</button>
+                <button type="button" class="btn btn-outline-warning no-print quick-fill" data-score="0"><i class="fas fa-bolt me-2"></i>پر کردن سریع: همه 0</button>
+            </form>
+        </div>
+        
+        <div class="radar-chart card no-print">
+            <h5><i class="fas fa-chart-area me-2"></i>نمودار عنکبوتی مقایسه</h5>
+            <div class="chart-container">
+                <div class="chart-select">
+                    <select multiple class="form-select mb-3" id="compareSelect"></select>
+                    <button type="button" class="btn btn-primary" id="updateChart"><i class="fas fa-sync me-2"></i>به‌روزرسانی نمودار</button>
+                </div>
+                <canvas id="radarChart" class="chart-canvas"></canvas>
+            </div>
+            <!-- Resize control -->
+            <div class="mt-3">
+                <label for="chartHeightSlider" class="form-label"><i class="fas fa-expand-arrows-alt me-2"></i>تنظیم ارتفاع نمودار:</label>
+                <input type="range" class="form-range" id="chartHeightSlider" min="300" max="1000" step="50" value="600">
+            </div>
+        </div>
+        
+        <div class="registered-table card no-print">
+            <h5><i class="fas fa-table me-2"></i>جدول افراد ثبت شده</h5>
+            <input type="text" class="form-control mb-3" id="searchTable" placeholder="جستجو...">
+            <table class="table table-striped" id="registeredTable">
+                <thead>
+                    <tr>
+                        <th>نام بازدیدکننده</th>
+                        <th>کد پرسنلی</th>
+                        <th>سمت</th>
+                        <th>معدل</th>
+                        <th>تاریخ و ساعت ثبت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <div class="analysis-section card no-print">
+            <h5><i class="fas fa-analytics me-2"></i>تحلیل هوشمند</h5>
+            <table class="table table-bordered">
+                <tbody id="analysisTable"></tbody>
+            </table>
+        </div>
+        
+        <div class="footer">سازنده: حسین هادی پور 🔨</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jalaali-js@1.2.6/dist/jalaali.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        const now = new Date();
+        document.getElementById('gregDate').textContent = now.toLocaleDateString('en-US');
+        const jalali = jalaali.toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+        document.getElementById('jalaliDate').textContent = `${jalali.jy}/${jalali.jm}/${jalali.jd}`;
+
+        // Signature canvases
+        const sigCanvases = [];
+        for (let i = 1; i <= 7; i++) {
+            const canvas = document.getElementById(`sig${i}`);
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+            canvas.addEventListener('mousedown', () => drawing = true);
+            canvas.addEventListener('mouseup', () => drawing = false);
+            canvas.addEventListener('mousemove', (e) => {
+                if (drawing) {
+                    ctx.lineTo(e.offsetX, e.offsetY);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(e.offsetX, e.offsetY);
+                }
+            });
+            canvas.addEventListener('touchstart', () => drawing = true);
+            canvas.addEventListener('touchend', () => drawing = false);
+            canvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                if (drawing) {
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                }
+            });
+            sigCanvases.push(canvas);
+        }
+        document.querySelectorAll('.clear-sig').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sigId = btn.dataset.sig;
+                const canvas = document.getElementById(`sig${sigId}`);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+        });
+
+        const scores = Array(23).fill(0);
+        const scoreSelects = document.querySelectorAll('.score');
+        scoreSelects.forEach(select => {
+            select.addEventListener('change', (e) => {
+                scores[parseInt(e.target.dataset.index)] = parseInt(e.target.value);
+                updateAverage();
+            });
+        });
+        function updateAverage() {
+            const total = scores.reduce((a, b) => a + b, 0);
+            const avg = (total / (scores.length * 5)) * 100;
+            document.getElementById('averageScore').textContent = avg.toFixed(2);
+        }
+
+        let radarChart;
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        function updateRadarChart(datasets) {
+            if (radarChart) radarChart.destroy();
+            radarChart = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: Array.from({length: 23}, (_, i) => `شاخص ${i+1}`),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: { line: { borderWidth: 3 } },
+                    scales: { r: { beginAtZero: true, max: 5 } }
+                }
+            });
+        }
+        updateRadarChart([{
+            label: 'امتیازات فعلی',
+            data: scores,
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            pointBackgroundColor: 'rgb(54, 162, 235)',
+            pointBorderColor: '#fff'
+        }]);
+
+        let evaluations = JSON.parse(localStorage.getItem('evaluations')) || [];
+        function saveEvaluation(showAlert = true) {
+            const personnelCode = document.getElementById('personnelCode').value.trim();
+            if (!personnelCode) return;
+            const existingIndex = evaluations.findIndex(ev => ev.personnelCode === personnelCode);
+            const photoInput = document.getElementById('photo');
+            let photoData = '';
+            if (photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.readAsDataURL(photoInput.files[0]);
+                reader.onload = () => {
+                    photoData = reader.result;
+                    completeSave(photoData);
+                };
+                return;
+            } else {
+                completeSave(photoData);
+            }
+            function completeSave(photo) {
+                const evalData = {
+                    schoolName: document.getElementById('schoolName').value,
+                    schoolCode: document.getElementById('schoolCode').value,
+                    schoolRegion: document.getElementById('schoolRegion').value,
+                    managerName: document.getElementById('managerName').value,
+                    managerPhone: document.getElementById('managerPhone').value,
+                    visitorName: document.getElementById('visitorName').value,
+                    personnelCode,
+                    visitorPhone: document.getElementById('visitorPhone').value,
+                    base: document.getElementById('base').value,
+                    scores: [...scores],
+                    average: parseFloat(document.getElementById('averageScore').textContent),
+                    generalReport: document.getElementById('generalReport').value,
+                    strengths: document.getElementById('strengths').value,
+                    weaknesses: document.getElementById('weaknesses').value,
+                    followUps: document.getElementById('followUps').value,
+                    visitors: Array.from(document.querySelectorAll('.visitor-name')).map((input, i) => ({
+                        name: input.value,
+                        position: document.querySelectorAll('.visitor-position')[i].value,
+                        signature: sigCanvases[i].toDataURL()
+                    })),
+                    date: now.toISOString(),
+                    jalaliDate: `${jalali.jy}/${jalali.jm}/${jalali.jd}`,
+                    photo,
+                    location: {
+                        lat: document.getElementById('locationLat').value,
+                        lng: document.getElementById('locationLng').value
+                    },
+                    audio: document.getElementById('audioPlayback').src || ''
+                };
+                if (existingIndex >= 0) {
+                    evaluations[existingIndex] = evalData;
+                } else {
+                    evaluations.push(evalData);
+                }
+                localStorage.setItem('evaluations', JSON.stringify(evaluations));
+                updateRegisteredTable();
+                populateCompareSelect();
+                performAnalysis();
+                if (showAlert) Swal.fire('موفقیت', 'ذخیره شد!', 'success');
+            }
+        }
+
+        document.getElementById('evaluationForm').addEventListener('change', () => saveEvaluation(false));
+        document.getElementById('saveBtn').addEventListener('click', () => saveEvaluation(true));
+
+        function editEvaluation(code) {
+            const evalData = evaluations.find(ev => ev.personnelCode === code);
+            if (!evalData) return;
+            document.getElementById('schoolName').value = evalData.schoolName || '';
+            document.getElementById('schoolCode').value = evalData.schoolCode || '';
+            document.getElementById('schoolRegion').value = evalData.schoolRegion || '';
+            document.getElementById('managerName').value = evalData.managerName || '';
+            document.getElementById('managerPhone').value = evalData.managerPhone || '';
+            document.getElementById('visitorName').value = evalData.visitorName;
+            document.getElementById('personnelCode').value = evalData.personnelCode;
+            document.getElementById('visitorPhone').value = evalData.visitorPhone || '';
+            document.getElementById('base').value = evalData.base;
+            evalData.scores.forEach((score, i) => {
+                scoreSelects[i].value = score;
+                scores[i] = score;
+            });
+            document.getElementById('generalReport').value = evalData.generalReport || '';
+            document.getElementById('strengths').value = evalData.strengths || '';
+            document.getElementById('weaknesses').value = evalData.weaknesses || '';
+            document.getElementById('followUps').value = evalData.followUps || '';
+            evalData.visitors.forEach((visitor, i) => {
+                if (i < 7) {
+                    document.querySelectorAll('.visitor-name')[i].value = visitor.name;
+                    document.querySelectorAll('.visitor-position')[i].value = visitor.position;
+                    const img = new Image();
+                    img.src = visitor.signature;
+                    img.onload = () => sigCanvases[i].getContext('2d').drawImage(img, 0, 0);
+                }
+            });
+            if (evalData.photo) {
+                document.getElementById('photoPreview').src = evalData.photo;
+                document.getElementById('photoPreview').style.display = 'block';
+            }
+            if (evalData.location.lat && evalData.location.lng) {
+                document.getElementById('locationLat').value = evalData.location.lat;
+                document.getElementById('locationLng').value = evalData.location.lng;
+                initMap(evalData.location.lat, evalData.location.lng);
+            }
+            if (evalData.audio) {
+                document.getElementById('audioPlayback').src = evalData.audio;
+                document.getElementById('audioPlayback').style.display = 'block';
+            }
+            updateAverage();
+        }
+
+        function deleteEvaluation(code) {
+            Swal.fire({
+                title: 'حذف؟',
+                text: 'آیا مطمئن هستید؟',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'بله',
+                cancelButtonText: 'خیر'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    evaluations = evaluations.filter(ev => ev.personnelCode !== code);
+                    localStorage.setItem('evaluations', JSON.stringify(evaluations));
+                    updateRegisteredTable();
+                    populateCompareSelect();
+                    performAnalysis();
+                    Swal.fire('حذف شد!', '', 'success');
+                }
+            });
+        }
+
+        function updateRegisteredTable() {
+            const tbody = document.querySelector('#registeredTable tbody');
+            tbody.innerHTML = '';
+            evaluations.forEach(ev => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ev.visitorName}</td>
+                    <td>${ev.personnelCode}</td>
+                    <td>${ev.base}</td>
+                    <td>${ev.average.toFixed(2)}</td>
+                    <td>${new Date(ev.date).toLocaleString('fa-IR')} (${ev.jalaliDate})</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary edit-row" data-code="${ev.personnelCode}"><i class="fas fa-edit"></i> ویرایش</button>
+                        <button class="btn btn-sm btn-danger delete-row" data-code="${ev.personnelCode}"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.querySelectorAll('.edit-row').forEach(btn => btn.addEventListener('click', (e) => editEvaluation(e.target.dataset.code)));
+            document.querySelectorAll('.delete-row').forEach(btn => btn.addEventListener('click', (e) => deleteEvaluation(e.target.dataset.code)));
+        }
+        updateRegisteredTable();
+
+        document.getElementById('searchTable').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#registeredTable tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+        document.getElementById('exportJson').addEventListener('click', () => {
+            const blob = new Blob([JSON.stringify(evaluations, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'evaluations.json';
+            a.click();
+        });
+
+        document.getElementById('importJson').addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    evaluations = JSON.parse(ev.target.result);
+                    localStorage.setItem('evaluations', JSON.stringify(evaluations));
+                    updateRegisteredTable();
+                    populateCompareSelect();
+                    performAnalysis();
+                    Swal.fire('موفقیت', 'وارد شد!', 'success');
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        });
+
+        document.getElementById('exportExcel').addEventListener('click', () => {
+            const data = evaluations.map(ev => {
+                const row = {
+                    'نام مدرسه': ev.schoolName,
+                    'کد مدرسه': ev.schoolCode,
+                    'ناحیه/منطقه': ev.schoolRegion,
+                    'نام مدیر': ev.managerName,
+                    'شماره مدیر': ev.managerPhone,
+                    'نام بازدیدکننده': ev.visitorName,
+                    'کد پرسنلی': ev.personnelCode,
+                    'شماره تماس بازدیدکننده': ev.visitorPhone,
+                    'سمت': ev.base,
+                    معدل: ev.average,
+                    'تاریخ ثبت': new Date(ev.date).toLocaleString('fa-IR'),
+                    'تاریخ شمسی': ev.jalaliDate
+                };
+                ev.scores.forEach((score, i) => {
+                    row[`شاخص ${i+1}`] = score;
+                });
+                return row;
+            });
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Evaluations');
+            XLSX.writeFile(wb, 'evaluations.xlsx');
+        });
+
+        document.querySelectorAll('.quick-fill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const score = parseInt(btn.dataset.score);
+                scoreSelects.forEach((select, i) => {
+                    select.value = score;
+                    scores[i] = score;
+                });
+                updateAverage();
+            });
+        });
+
+        document.getElementById('photo').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('photoPreview').src = ev.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        let map, marker;
+        function initMap(lat = 35.6892, lng = 51.3890) {
+            map = L.map('map').setView([lat, lng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+        initMap();
+        document.getElementById('getLocation').addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    document.getElementById('locationLat').value = lat;
+                    document.getElementById('locationLng').value = lng;
+                    map.setView([lat, lng], 13);
+                    marker.setLatLng([lat, lng]);
+                    Swal.fire('موفقیت', 'مکان ثبت شد!', 'success');
+                }, () => {
+                    Swal.fire('خطا', 'دسترسی به مکان مجاز نیست.', 'error');
+                });
+            } else {
+                Swal.fire('خطا', 'مرورگر از مکان‌یابی پشتیبانی نمی‌کند.', 'error');
+            }
+        });
+
+        let mediaRecorder;
+        let audioChunks = [];
+        const maxDuration = 180000;
+        let recordTimeout;
+        document.getElementById('startRecord').addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                audioChunks = [];
+                mediaRecorder.addEventListener('dataavailable', (e) => audioChunks.push(e.data));
+                mediaRecorder.addEventListener('stop', () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = document.getElementById('audioPlayback');
+                    audio.src = audioUrl;
+                    audio.style.display = 'block';
+                });
+                document.getElementById('startRecord').disabled = true;
+                document.getElementById('stopRecord').disabled = false;
+                recordTimeout = setTimeout(() => {
+                    if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+                }, maxDuration);
+            } catch (err) {
+                Swal.fire('خطا', 'دسترسی به میکروفون مجاز نیست.', 'error');
+            }
+        });
+        document.getElementById('stopRecord').addEventListener('click', () => {
+            mediaRecorder.stop();
+            clearTimeout(recordTimeout);
+            document.getElementById('startRecord').disabled = false;
+            document.getElementById('stopRecord').disabled = true;
+        });
+
+        function populateCompareSelect() {
+            const select = document.getElementById('compareSelect');
+            select.innerHTML = '';
+            evaluations.forEach(ev => {
+                const option = document.createElement('option');
+                option.value = ev.personnelCode;
+                option.textContent = `${ev.visitorName} - ${ev.schoolName} (${ev.personnelCode})`;
+                select.appendChild(option);
+            });
+        }
+        populateCompareSelect();
+
+        document.getElementById('updateChart').addEventListener('click', () => {
+            const selectedCodes = Array.from(document.getElementById('compareSelect').selectedOptions).map(opt => opt.value);
+            const datasets = selectedCodes.map(code => {
+                const ev = evaluations.find(e => e.personnelCode === code);
+                const colors = getRandomColor();
+                return {
+                    label: `${ev.visitorName} - ${ev.schoolName}`,
+                    data: ev.scores,
+                    fill: true,
+                    backgroundColor: colors.bg,
+                    borderColor: colors.border,
+                    pointBackgroundColor: colors.border
+                };
+            });
+            updateRadarChart(datasets);
+        });
+
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 255);
+            const g = Math.floor(Math.random() * 255);
+            const b = Math.floor(Math.random() * 255);
+            return { bg: `rgba(${r}, ${g}, ${b}, 0.2)`, border: `rgb(${r}, ${g}, ${b})` };
+        }
+
+        function performAnalysis() {
+            const analysisTable = document.getElementById('analysisTable');
+            analysisTable.innerHTML = '';
+            if (evaluations.length === 0) return;
+            const overallAvg = evaluations.reduce((sum, ev) => sum + ev.average, 0) / evaluations.length;
+            addAnalysisRow('معدل کلی همه ارزیابی‌ها', overallAvg.toFixed(2));
+            const maxEval = evaluations.reduce((max, ev) => ev.average > max.average ? ev : max, evaluations[0]);
+            const minEval = evaluations.reduce((min, ev) => ev.average < min.average ? ev : min, evaluations[0]);
+            addAnalysisRow('بالاترین معدل', `${maxEval.visitorName} - ${maxEval.schoolName} (${maxEval.average.toFixed(2)})`);
+            addAnalysisRow('پایین‌ترین معدل', `${minEval.visitorName} - ${minEval.schoolName} (${minEval.average.toFixed(2)})`);
+            for (let i = 0; i < 23; i++) {
+                const indexAvg = evaluations.reduce((sum, ev) => sum + ev.scores[i], 0) / evaluations.length;
+                addAnalysisRow(`معدل شاخص ${i+1}`, indexAvg.toFixed(2));
+            }
+            function addAnalysisRow(title, value) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${title}</td><td>${value}</td>`;
+                analysisTable.appendChild(row);
+            }
+        }
+        performAnalysis();
+
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            if (!document.getElementById('evaluationForm').checkValidity()) {
+                Swal.fire('خطا', 'لطفاً فیلدهای الزامی را پر کنید.', 'error');
+            } else {
+                saveEvaluation(true);
+            }
+        });
+
+        // Improved UX: Add tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+        // Add tooltips to score selects
+        scoreSelects.forEach(select => {
+            select.setAttribute('data-bs-toggle', 'tooltip');
+            select.setAttribute('data-bs-placement', 'top');
+            select.setAttribute('title', 'امتیاز از 0 تا 5 انتخاب کنید');
+            new bootstrap.Tooltip(select);
+        });
+
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseover', () => {
+                btn.style.transition = 'transform 0.2s';
+                btn.style.transform = 'scale(1.05)';
+            });
+            btn.addEventListener('mouseout', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+
+        // Chart resize slider
+        document.getElementById('chartHeightSlider').addEventListener('input', (e) => {
+            const height = e.target.value + 'px';
+            document.getElementById('radarChart').style.height = height;
+            if (radarChart) radarChart.resize();
+        });
+    </script>
+</body>
+</html>
